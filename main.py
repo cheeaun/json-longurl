@@ -21,17 +21,23 @@ class MainHandler(webapp.RequestHandler):
     longurl = None
 
 #    for debugging
-#    memcache.flush_all()
+    memcache.flush_all()
     
     if url:
       json = memcache.get(url)
       
       if json is None:
         logging.info('The url is NOT in memcache')
-        longurl = expand(url)
         
-        obj['url'] = longurl
-        obj['redirected'] = longurl != url
+        urls = []
+        urls = expand(url, urls)
+        urls.reverse()
+        urls.append(url)
+        urls.reverse()
+        
+        obj['urls'] = urls
+        obj['url'] = urls[-1]
+        obj['redirected'] = len(urls) > 1
         
         json = simplejson.dumps(obj, sort_keys=True, indent=4)
         
@@ -61,7 +67,7 @@ class MainHandler(webapp.RequestHandler):
       <h1>json-longurl</h1>
       <p>JSON (and JSON-P) API for expanding a shortened URL or getting the destination URL of a redirection URL.
       <ul>
-          <li><a href="/?url=http://tinyurl.com/161">/?url=http://tinyurl.com/161</a>
+          <li><a href="/?url=http://tinyurl.com/8kp">/?url=http://tinyurl.com/8kp</a>
           <li><a href="/?url=http://is.gd/ckJ&amp;callback=foo">/?url=http://is.gd/ckJ&amp;callback=foo</a>
           <li><a href="/?url=http://google.com/">/?url=http://google.com/</a>
           <li><a href="/?url=http://www.google.com/">/?url=http://www.google.com/</a>
@@ -69,7 +75,7 @@ class MainHandler(webapp.RequestHandler):
       <p>Inspired by <a href="http://longurl.org/">LongURL</a>. You may also like <a href="http://json-pagetitle.appspot.com/">json-pagetitle</a>.</p>
       """)
 
-def expand(url):
+def expand(url, urls):
   try:
     result = urlfetch.fetch(url, method='HEAD', follow_redirects=False)
     
@@ -80,12 +86,15 @@ def expand(url):
     if result.status_code == 301:
       logging.info('The url redirects')
       longurl = result.headers.get('location')
-      return expand(longurl) # recursive expand of the URL
+      if longurl not in urls: # prevent infinite loop
+        urls.append(longurl)
+        urls = expand(longurl, urls) # recursive expand of the URL
     else:
       logging.info('The url does NOT redirect')
-      return url
+    return urls
   except urlfetch.Error:
     pass
+    return urls
 
 def main():
   application = webapp.WSGIApplication([('/', MainHandler)],
