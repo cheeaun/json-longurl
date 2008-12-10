@@ -21,7 +21,7 @@ class MainHandler(webapp.RequestHandler):
     longurl = None
 
 #    for debugging
-    memcache.flush_all()
+#    memcache.flush_all()
     
     if url:
       json = memcache.get(url)
@@ -29,15 +29,12 @@ class MainHandler(webapp.RequestHandler):
       if json is None:
         logging.info('The url is NOT in memcache')
         
-        urls = []
+        urls = [url]
         urls = expand(url, urls)
-        urls.reverse()
-        urls.append(url)
-        urls.reverse()
         
-        obj['urls'] = urls
+        if len(urls)>1: obj['urls'] = urls
         obj['url'] = urls[-1]
-        obj['redirected'] = len(urls) > 1
+        obj['redirected'] = len(urls)>1
         
         json = simplejson.dumps(obj, sort_keys=True, indent=4)
         
