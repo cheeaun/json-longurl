@@ -69,7 +69,7 @@ class MainHandler(webapp.RequestHandler):
           <li><a href="/?url=http://google.com/">/?url=http://google.com/</a>
           <li><a href="/?url=http://www.google.com/">/?url=http://www.google.com/</a>
       </ul>
-      <p>Inspired by <a href="http://longurl.org/">LongURL</a>. You may also like <a href="http://json-pagetitle.appspot.com/">json-pagetitle</a>.</p>
+      <p>Inspired by <a href="http://longurl.org/">LongURL</a>. You may also like <a href="http://json-pagetitle.appspot.com/">json-pagetitle</a>. <a href="http://json-longurl.googlecode.com/">Google Code</a>.</p>
       """)
 
 def expand(url, urls):
